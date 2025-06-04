@@ -22,6 +22,7 @@ It pulls the official Verse-of-the-Day RSS from [Bible Gateway](https://www.bibl
 ```bash
 npm i -g verse-of-the-day-cli
 verse --help
+```
 
 ---
 
