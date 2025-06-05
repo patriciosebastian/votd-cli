@@ -133,22 +133,22 @@ function shellInfo(shell) {
     case 'bash':
       return {
         rcPath: path.join(home, '.bashrc'),
-        snippet: 'if [[ $- == *i* ]]; then verse --auto; fi'
+        snippet: 'if [[ $- == *i* ]]; then verse; fi'
       };
     case 'zsh':
       return {
         rcPath: path.join(home, '.zshrc'),
-        snippet: 'if [[ $- == *i* ]]; then verse --auto; fi'
+        snippet: 'if [[ $- == *i* ]]; then verse; fi'
       };
     case 'fish':
       return {
         rcPath: path.join(home, '.config', 'fish', 'config.fish'),
-        snippet: 'if status --is-interactive; verse --auto; end'
+        snippet: 'if status --is-interactive; verse; end'
       };
     case 'powershell':
       return {
         rcPath: path.join(home, 'Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1'),
-        snippet: 'if ($Host.UI.RawUI.WindowTitle) { verse --auto }'
+        snippet: 'if ($Host.UI.RawUI.WindowTitle) { verse }'
       };
     default:
       return { rcPath: null, snippet: '' };
