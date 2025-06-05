@@ -16,7 +16,15 @@ const program = new Command()
   .version('1.0.0');
 
 program
-  .option('-f, --force', 'fetch a fresh verse even if today\'s is cached')
+.option('-f, --force', 'fetch a fresh verse even if today\'s is cached')
+.option('-c, --copy',  'copy verse to clipboard')
+.action(runVerse);
+
+program
+  .command('show')
+  .alias('s')
+  .description('print today’s verse (cached, unless --force)')
+  .option('-f, --force', 'fetch a fresh verse even if today’s is cached')
   .option('-c, --copy',  'copy verse to clipboard')
   .action(runVerse);
 
@@ -24,6 +32,16 @@ program
   .command('init')
   .description('add auto-run snippet to your shell profile')
   .action(runInit);
+
+program.addHelpText('after', `
+  $ verse                 # print today’s verse (cached if already fetched)
+  $ verse --force         # always pull a fresh verse
+  $ verse show -c         # show cached verse and copy to clipboard
+  $ verse show --force    # force-refresh via the show command
+  $ verse init            # greet me once per day on new terminal
+
+  Home page & docs: https://patriciosebastian.github.io/verse-cli/
+`);
 
 program.showHelpAfterError('(add --help for more information)');
 
@@ -37,36 +55,35 @@ async function runVerse(opts) {
   const verseDir  = path.join(cfgHome, 'verse-cli');
   const cacheFile = path.join(verseDir, 'cache.json');
 
-  let cached = {};
+  let data = {};
   try {
-    cached = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+    data = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
   } catch {
     //
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  if (cached.date === today && !force) {
-    return;
+  if (force || data.date !== today) {
+    const fresh = await getVerse();
+    data = { date: today, ...fresh };
+    fs.mkdirSync(verseDir, { recursive: true });
+    fs.writeFileSync(cacheFile, JSON.stringify(data));
   }
 
-  const { reference, verse, provider } = await getVerse();
+  printVerse(data.reference, data.verse, data.provider);
 
+  if (toClip) {
+    await clipboardy.write(`${data.reference} – ${data.verse}`);
+  }
+}
+
+function printVerse(reference, verse, provider) {
   console.log(
     chalk.green.bold(reference),
     '\n',
     chalk.white(verse),
     '\n',
     chalk.gray(`Verse courtesy: ${provider}`)
-  );
-
-  if (toClip) {
-    await clipboardy.write(`${reference} – ${verse}`);
-  }
-
-  fs.mkdirSync(verseDir, { recursive: true });
-  fs.writeFileSync(
-    cacheFile,
-    JSON.stringify({ date: today, reference, verse, provider })
   );
 }
 
